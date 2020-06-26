@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "cssnano": "^4.1.10",
+    "sass": "^1.26.9"
+  },
+  "dependencies": {
+    "reset.scss": "^1.0.0"
+  }
+}

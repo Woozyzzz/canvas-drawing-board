@@ -1,0 +1,156 @@
+article {
+  section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    header {
+      height: 80px;
+      background: #444;
+    }
+    .content {
+      flex-grow: 1;
+      display: flex;
+      main {
+        background: #ddd;
+        box-shadow: inset -2px 2px 4px 0px rgba(0, 0, 0, 0.3);
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: auto;
+        #canvas {
+          background: #fff;
+        }
+      }
+      aside {
+        background: #eee;
+        width: 35%;
+        max-width: 264px;
+        display: flex;
+        justify-content: stretch;
+        flex-direction: column;
+
+        .brushStyle {
+          display: flex;
+          flex-direction: column;
+          .text {
+            padding: 10px;
+            color: royalblue;
+          }
+          .typeWrapper {
+            padding: 10px;
+            .type {
+              display: flex;
+              justify-content: center;
+              li {
+                width: 42px;
+                height: 42px;
+                &.selected {
+                  border: 1px solid #000;
+                }
+              }
+            }
+          }
+          .thickWrapper {
+            padding: 10px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            span {
+              font-size: small;
+              margin-right: 10px;
+            }
+            input {
+              display: block;
+              text-align: right;
+            }
+          }
+        }
+        .colorWrapper {
+          border-top: 1px solid lightgray;
+          padding: 10px;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+          .currentColorWrapper {
+            .currentColor {
+              // width: 216px;
+              height: 36px;
+              border: none;
+            }
+          }
+
+          .brushColor {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            // width: 216px;
+            margin-top: 10px;
+            li {
+              width: 36px;
+              height: 36px;
+              &:hover {
+                border: 1px solid #000;
+              }
+              &:nth-child(1) {
+                background: white;
+              }
+              &:nth-child(2) {
+                background: lightgrey;
+              }
+              &:nth-child(3) {
+                background: grey;
+              }
+              &:nth-child(4) {
+                background: black;
+              }
+              &:nth-child(5) {
+                background: darkred;
+              }
+              &:nth-child(6) {
+                background: red;
+              }
+              &:nth-child(7) {
+                background: orange;
+              }
+              &:nth-child(8) {
+                background: gold;
+              }
+              &:nth-child(9) {
+                background: lightgoldenrodyellow;
+              }
+              &:nth-child(10) {
+                background: yellow;
+              }
+              &:nth-child(11) {
+                background: yellowgreen;
+              }
+              &:nth-child(12) {
+                background: green;
+              }
+              &:nth-child(13) {
+                background: cyan;
+              }
+              &:nth-child(14) {
+                background: dodgerblue;
+              }
+              &:nth-child(15) {
+                background: blue;
+              }
+              &:nth-child(16) {
+                background: purple;
+              }
+              &:nth-child(17) {
+                background: pink;
+              }
+              &:nth-child(18) {
+                background: brown;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{"version":3,"sources":["reset.scss"],"names":[],"mappings":"AAAA,EACE,QAAA,CACA,SAAA,CACA,sBAEF,MAEE","file":"reset.bb133513.css","sourceRoot":"..\\src","sourcesContent":["* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n}\r\nol,\r\nul {\r\n  list-style: none;\r\n}\r\n"]}
