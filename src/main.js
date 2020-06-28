@@ -1,11 +1,15 @@
 const el = (string) => document.querySelector(string);
 
+const section = el("section");
 const main = el("main");
 const canvas = el("#canvas");
 const currentColor = el(".currentColor");
 const thickness = el(".thickness");
 const brushColor = el(".brushColor");
 
+// 优化移动端浏览器工具栏高度包含于100vh的问题，将浏览器真正视口高度作为 section 样式高度
+let vh = window.innerHeight * 0.01;
+section.style.setProperty("--vh", `${vh}px`);
 // 设置画布宽高及样式宽高（不设置样式宽高会被 flex-grow 拉长）
 const mainWidth = parseInt(main.clientWidth * 0.8);
 const mainHeight = parseInt(main.clientHeight * 0.9);
