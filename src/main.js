@@ -57,20 +57,26 @@ canvas.addEventListener("touchstart", (e) => {
   lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
   lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
 });
-canvas.addEventListener("touchmove", (e) => {
-  if (painting) {
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(
-      e.touches[0].pageX - e.touches[0].target.offsetLeft,
-      e.touches[0].pageY - e.touches[0].target.offsetTop
-    );
-    ctx.closePath();
-    ctx.stroke();
-    lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
-    lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
-  }
-});
+// 使用事件委托优化移动端绘图，在画布上触摸移动时阻止body默认事件（阻止浏览器的滑动）
+document.body.addEventListener(
+  "touchmove",
+  (e) => {
+    if (painting && e.target.matches(`canvas`)) {
+      e.preventDefault();
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(
+        e.touches[0].pageX - e.touches[0].target.offsetLeft,
+        e.touches[0].pageY - e.touches[0].target.offsetTop
+      );
+      ctx.closePath();
+      ctx.stroke();
+      lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
+      lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
+    }
+  },
+  { passive: false }
+);
 canvas.addEventListener("touchend", (e) => {
   painting = false;
 });
