@@ -6,6 +6,8 @@ const canvas = el("#canvas");
 const currentColor = el(".currentColor");
 const thickness = el(".thickness");
 const brushColor = el(".brushColor");
+const type = el(".type");
+const text = el(".text");
 
 // 优化移动端浏览器工具栏高度包含于100vh的问题，将浏览器真正视口高度作为 section 样式高度
 let vh = window.innerHeight * 0.01;
@@ -102,5 +104,22 @@ brushColor.addEventListener("click", (e) => {
     });
     ctx.strokeStyle = color16;
     currentColor.value = color16;
+  }
+});
+// 点击图标切换铅笔橡皮，使用 globalCompositeOperation 设置绘图类型
+type.addEventListener("click", (e) => {
+  if (e.target.matches("img")) {
+    const li = e.target.parentNode;
+    type.childNodes.forEach((node) =>
+      node.classList ? node.classList.remove("selected") : undefined
+    );
+    li.classList.add("selected");
+    if (Array.from(li.classList).indexOf("eraser") >= 0) {
+      text.textContent = "橡皮";
+      ctx.globalCompositeOperation = "destination-out";
+    } else {
+      text.textContent = "铅笔";
+      ctx.globalCompositeOperation = "source-over";
+    }
   }
 });
