@@ -22,6 +22,7 @@ canvas.style.height = `${mainHeight}px`;
 
 const ctx = canvas.getContext("2d");
 ctx.strokeStyle = currentColor.value;
+ctx.fillStyle = currentColor.value;
 ctx.lineWidth = thickness.value;
 ctx.lineJoin = "round";
 let painting = false;
@@ -34,6 +35,10 @@ canvas.addEventListener("mousedown", (e) => {
   painting = true;
   lastX = e.offsetX;
   lastY = e.offsetY;
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, 2 * Math.PI);
+  ctx.closePath();
+  ctx.fill();
 });
 canvas.addEventListener("mousemove", (e) => {
   if (painting) {
@@ -58,6 +63,10 @@ canvas.addEventListener("touchstart", (e) => {
   painting = true;
   lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
   lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, 2 * Math.PI);
+  ctx.closePath();
+  ctx.fill();
 });
 // 使用事件委托优化移动端绘图，在画布上触摸移动时阻止body默认事件（阻止浏览器的滑动）
 document.body.addEventListener(
@@ -89,6 +98,7 @@ canvas.addEventListener("touchcancel", (e) => {
 
 currentColor.addEventListener("input", (e) => {
   ctx.strokeStyle = e.target.value;
+  ctx.fillStyle = e.target.value;
 });
 thickness.addEventListener("input", (e) => {
   ctx.lineWidth = e.target.value;
@@ -98,11 +108,12 @@ brushColor.addEventListener("click", (e) => {
   if (e.target.matches("li")) {
     let color16 = "#";
     const color = getComputedStyle(e.target).backgroundColor;
-    color.split(",").forEach((item) => {
-      const str = parseInt(item.match(/\d{1,3}/)).toString(16);
-      str.length === 2 ? (color16 += str) : (color16 += "0" + str); // 确保六位数 HEX 颜色值
+    [...color.matchAll(/\d{1,3}/g)].forEach((item) => {
+      const str = parseInt(item).toString(16);
+      color16 += str.length === 2 ? str : "0" + str; // 确保六位数 HEX 颜色值
     });
     ctx.strokeStyle = color16;
+    ctx.fillStyle = color16;
     currentColor.value = color16;
   }
 });
