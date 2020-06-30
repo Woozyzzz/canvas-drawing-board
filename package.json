@@ -5,5 +5,9 @@
   },
   "dependencies": {
     "reset.scss": "^1.0.0"
+  },
+  "scripts": {
+    "serve": "parcel src/index.html",
+    "build": "rm -rf .cache dist && parcel build src/index.html --public-url ./"
   }
 }
