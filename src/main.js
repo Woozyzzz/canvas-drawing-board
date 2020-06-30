@@ -101,7 +101,7 @@ currentColor.addEventListener("input", (e) => {
   ctx.fillStyle = e.target.value;
 });
 thickness.addEventListener("input", (e) => {
-  ctx.lineWidth = e.target.value;
+  ctx.lineWidth = parseInt(e.target.value);
 });
 // 点击色块改变画笔颜色，将色块背景色赋值给 currentColor.value （RGB 转为 HEX ）
 brushColor.addEventListener("click", (e) => {
