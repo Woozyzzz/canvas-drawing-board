@@ -1,136 +1,166 @@
-const el = (string) => document.querySelector(string);
+const el = (selector) => document.querySelector(selector);
 
 const section = el("section");
-const main = el("main");
+const mainArea = el("main");
 const canvas = el("#canvas");
 const currentColor = el(".currentColor");
 const thickness = el(".thickness");
 const brushColor = el(".brushColor");
 const type = el(".type");
 const text = el(".text");
-
-// 优化移动端浏览器工具栏高度包含于100vh的问题，将浏览器真正视口高度作为 section 样式高度
-let vh = window.innerHeight * 0.01;
-section.style.setProperty("--vh", `${vh}px`);
-// 设置画布宽高及样式宽高（不设置样式宽高会被 flex-grow 拉长）
-const mainWidth = parseInt(main.clientWidth * 0.8);
-const mainHeight = parseInt(main.clientHeight * 0.9);
-canvas.width = `${mainWidth}`;
-canvas.height = `${mainHeight}`;
-canvas.style.width = `${mainWidth}px`;
-canvas.style.height = `${mainHeight}px`;
-
 const ctx = canvas.getContext("2d");
-ctx.strokeStyle = currentColor.value;
-ctx.fillStyle = currentColor.value;
-ctx.lineWidth = thickness.value;
-ctx.lineJoin = "round";
+
+if (!ctx) {
+  throw new Error("Canvas 2D context is not available in this browser.");
+}
+
 let painting = false;
-// 上一个绘画路径点的坐标
 let lastX = 0;
 let lastY = 0;
+let pixelRatio = Math.max(1, window.devicePixelRatio || 1);
 
-// 鼠标绘图
-canvas.addEventListener("mousedown", (e) => {
-  painting = true;
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-  ctx.beginPath();
-  ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, 2 * Math.PI);
-  ctx.closePath();
-  ctx.fill();
-});
-canvas.addEventListener("mousemove", (e) => {
-  if (painting) {
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.closePath();
-    ctx.stroke();
-    lastX = e.offsetX;
-    lastY = e.offsetY;
+function updateViewportHeight() {
+  section.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
+}
+
+function resizeCanvas() {
+  const width = Math.max(1, Math.floor(mainArea.clientWidth * 0.8));
+  const height = Math.max(1, Math.floor(mainArea.clientHeight * 0.9));
+  const nextRatio = Math.max(1, window.devicePixelRatio || 1);
+  if (
+    canvas.width === Math.round(width * nextRatio) &&
+    canvas.height === Math.round(height * nextRatio)
+  ) {
+    return;
   }
-});
-canvas.addEventListener("mouseup", (e) => {
-  painting = false;
-});
-// 鼠标移出画布停止绘画，防止再次进入产生连线
-canvas.addEventListener("mouseout", (e) => {
-  painting = false;
-});
-// 触摸绘图
-canvas.addEventListener("touchstart", (e) => {
+
+  const snapshot = document.createElement("canvas");
+  snapshot.width = canvas.width;
+  snapshot.height = canvas.height;
+  snapshot.getContext("2d").drawImage(canvas, 0, 0);
+
+  canvas.width = Math.round(width * nextRatio);
+  canvas.height = Math.round(height * nextRatio);
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+  pixelRatio = nextRatio;
+
+  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  if (snapshot.width && snapshot.height) {
+    ctx.drawImage(snapshot, 0, 0, snapshot.width, snapshot.height, 0, 0, width, height);
+  }
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.strokeStyle = currentColor.value;
+  ctx.fillStyle = currentColor.value;
+  ctx.lineWidth = getBrushSize();
+}
+
+function getBrushSize() {
+  const value = Number(thickness.value);
+  return Number.isFinite(value) ? Math.min(100, Math.max(1, value)) : 10;
+}
+
+function getCanvasPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (event.clientX - rect.left) * (canvas.clientWidth / rect.width),
+    y: (event.clientY - rect.top) * (canvas.clientHeight / rect.height),
+  };
+}
+
+function startDrawing(event) {
+  if (event.button !== undefined && event.button !== 0) return;
+  event.preventDefault();
   painting = true;
-  lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
-  lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
+  canvas.setPointerCapture(event.pointerId);
+  const point = getCanvasPoint(event);
+  lastX = point.x;
+  lastY = point.y;
   ctx.beginPath();
-  ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, 2 * Math.PI);
-  ctx.closePath();
+  ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
   ctx.fill();
-});
-// 使用事件委托优化移动端绘图，在画布上触摸移动时阻止body默认事件（阻止浏览器的滑动）
-document.body.addEventListener(
-  "touchmove",
-  (e) => {
-    if (painting && e.target.matches(`canvas`)) {
-      e.preventDefault();
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(
-        e.touches[0].pageX - e.touches[0].target.offsetLeft,
-        e.touches[0].pageY - e.touches[0].target.offsetTop
-      );
-      ctx.closePath();
-      ctx.stroke();
-      lastX = e.touches[0].pageX - e.touches[0].target.offsetLeft;
-      lastY = e.touches[0].pageY - e.touches[0].target.offsetTop;
-    }
-  },
-  { passive: false }
-);
-canvas.addEventListener("touchend", (e) => {
+}
+
+function draw(event) {
+  if (!painting) return;
+  event.preventDefault();
+  const point = getCanvasPoint(event);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(point.x, point.y);
+  ctx.stroke();
+  lastX = point.x;
+  lastY = point.y;
+}
+
+function stopDrawing(event) {
+  if (!painting) return;
   painting = false;
-});
-// 触摸移出画布停止绘画，防止再次进入产生连线
-canvas.addEventListener("touchcancel", (e) => {
+  if (event && canvas.hasPointerCapture(event.pointerId)) {
+    canvas.releasePointerCapture(event.pointerId);
+  }
+}
+
+ctx.strokeStyle = currentColor.value;
+ctx.fillStyle = currentColor.value;
+ctx.lineWidth = getBrushSize();
+ctx.lineJoin = "round";
+ctx.lineCap = "round";
+ctx.globalCompositeOperation = "source-over";
+
+canvas.addEventListener("pointerdown", startDrawing);
+canvas.addEventListener("pointermove", draw);
+canvas.addEventListener("pointerup", stopDrawing);
+canvas.addEventListener("pointercancel", stopDrawing);
+canvas.addEventListener("lostpointercapture", () => {
   painting = false;
 });
 
-currentColor.addEventListener("input", (e) => {
-  ctx.strokeStyle = e.target.value;
-  ctx.fillStyle = e.target.value;
+currentColor.addEventListener("input", (event) => {
+  ctx.strokeStyle = event.target.value;
+  ctx.fillStyle = event.target.value;
 });
-thickness.addEventListener("input", (e) => {
-  ctx.lineWidth = parseInt(e.target.value);
+
+thickness.addEventListener("input", () => {
+  ctx.lineWidth = getBrushSize();
 });
-// 点击色块改变画笔颜色，将色块背景色赋值给 currentColor.value （RGB 转为 HEX ）
-brushColor.addEventListener("click", (e) => {
-  if (e.target.matches("li")) {
-    let color16 = "#";
-    const color = getComputedStyle(e.target).backgroundColor;
-    [...color.matchAll(/\d{1,3}/g)].forEach((item) => {
-      const str = parseInt(item).toString(16);
-      color16 += str.length === 2 ? str : "0" + str; // 确保六位数 HEX 颜色值
-    });
-    ctx.strokeStyle = color16;
-    ctx.fillStyle = color16;
-    currentColor.value = color16;
-  }
+
+brushColor.addEventListener("click", (event) => {
+  if (!event.target.matches("li")) return;
+  const color = getComputedStyle(event.target).backgroundColor;
+  const channels = color.match(/\d{1,3}/g);
+  if (!channels || channels.length < 3) return;
+  const hex = "#" + channels.slice(0, 3).map((channel) =>
+    Number(channel).toString(16).padStart(2, "0")
+  ).join("");
+  ctx.strokeStyle = hex;
+  ctx.fillStyle = hex;
+  currentColor.value = hex;
 });
-// 点击图标切换铅笔橡皮，使用 globalCompositeOperation 设置绘图类型
-type.addEventListener("click", (e) => {
-  if (e.target.matches("img")) {
-    const li = e.target.parentNode;
-    type.childNodes.forEach((node) =>
-      node.classList ? node.classList.remove("selected") : undefined
-    );
-    li.classList.add("selected");
-    if (Array.from(li.classList).indexOf("eraser") >= 0) {
-      text.textContent = "橡皮";
-      ctx.globalCompositeOperation = "destination-out";
-    } else {
-      text.textContent = "铅笔";
-      ctx.globalCompositeOperation = "source-over";
-    }
-  }
+
+type.addEventListener("click", (event) => {
+  const image = event.target.closest("img");
+  if (!image) return;
+  const item = image.parentNode;
+  type.querySelectorAll("li").forEach((node) => node.classList.remove("selected"));
+  item.classList.add("selected");
+  const isEraser = item.classList.contains("eraser");
+  text.textContent = isEraser ? "橡皮" : "铅笔";
+  ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over";
+});
+
+updateViewportHeight();
+resizeCanvas();
+
+if (typeof ResizeObserver !== "undefined") {
+  const observer = new ResizeObserver(resizeCanvas);
+  observer.observe(mainArea);
+} else {
+  window.addEventListener("resize", resizeCanvas);
+}
+window.addEventListener("resize", updateViewportHeight);
+window.addEventListener("orientationchange", () => {
+  updateViewportHeight();
+  resizeCanvas();
 });
